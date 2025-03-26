@@ -2,7 +2,7 @@
 
 
 ## Configuração da sua conta Twilio
-* [Crie uma conta Twilio](https://www.twilio.com/try-twilio?utm_campaign=Developer&utm_medium=conference&utm_source=twilio&utm_content=EVENT_Third_Party_2025_MAR_26_TDC_Summit_IA_SaoPaulo_2025_LATAM&promo=TDCSUMMIT25) caso ainda não tenha. Você também pode acessar o link https://twil.io/summitsp25
+* [Crie uma conta Twilio](https://twil.io/summitsp25) caso ainda não tenha. Você também pode acessar o link https://twil.io/summitsp25
 * Acesse o produto de voz (Voice) > Configurações > Geral
 * Ative a opção `Predictive and Generative AI/ML Features Addendum` e salve
 
@@ -14,16 +14,31 @@
 
 ## Inicializando seu projeto
 
+Para rodar no computador do TDC:
+```
+$ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+Comandos para iniciar um projeto novo
 ```bash
 mkdir src
 cd src
 npm init -y
 npm i --save @google/generative-ai dotenv express ws twilio
-npm i -g ngrok
 
 touch server.js
 touch .env
 
+```
+
+Você também pode optar por clonar o repositório base:
+````
+git clone http://github.com/luisleao/workshop-genai-conversationrelay
+```
+
+Caso utilize o Ngrok, faça a instalação com o comando
+````
+npm i -g ngrok
 ```
 
 
