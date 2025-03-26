@@ -1,5 +1,8 @@
 # Workshop IA Generativa e Twilio Conversation Relay
 
+## Utilize o DevPhone no IDX
+https://www.twilio.com/docs/labs/dev-phone
+
 
 ## Configuração da sua conta Twilio
 * [Crie uma conta Twilio](https://twil.io/summitsp25) caso ainda não tenha. Você também pode acessar o link https://twil.io/summitsp25
