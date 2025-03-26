@@ -6,8 +6,7 @@
 * Acesse o produto de voz (Voice) > Configurações > Geral
 * Ative a opção `Predictive and Generative AI/ML Features Addendum` e salve
 
-
-
+## [LINK APRESENTAÇÃO](https://docs.google.com/presentation/d/12YyHh4431qEYbz8JIIhYn92800cj2bd9-YWKOJHMwlQ/edit#slide=id.g343a50f534e_0_20)
 
 
 
