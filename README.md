@@ -34,9 +34,10 @@ touch .env
 Acesse https://aistudio.google.com/app/apikey
 
 ## Login do Ngrok
-Você deve ter uma conta do Ngrok.com! Vamos utilizá-lo para fazer um túnel https e de websocket para sua aplicação local.
+Caso tenha algum servidor com acesso público na web e que tenha opção de inicializar um serviço de websocket, você pode utilizá-lo.
 
-Caso tenha algum servidor com acesso público na web e que tenha opção de inicializar um serviço de websocket, você também pode utilizá-lo.
+Ou pode optar por executar localmente. Para isso, crie uma conta no Ngrok.com! Vamos utilizá-lo para fazer um túnel https e de websocket para sua aplicação local.
+
 
 
 ## Links Importantes
