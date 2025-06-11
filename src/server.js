@@ -406,7 +406,7 @@ process.on('SIGTERM', finish);
     ws.send(JSON.stringify(
         {
             "type": "play",
-            "source": "https://api.twilio.com/cowbell.mp3",
+            "source": "https://demo.twilio.com/docs/classic.mp3",
             "loop": 1,
             "preemptible": false
         }
