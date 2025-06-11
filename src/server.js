@@ -10,10 +10,13 @@ const { makeCall } = require('./call');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 
-const SERVER = `https://SUA_URL_RANDOMICA.ngrok.io`;
+const { NGROK_ACTIVE, NGROK_TOKEN, NGROK_SUBDOMAIN } = process.env;
+let SERVER = '';
+const ngrok = require('ngrok');
 
 
 const {
+    PROVIDER,
     VOICE,
     WELCOME_GREETING,
     WELCOME_GREET_LANGUAGE,
@@ -44,7 +47,7 @@ wss.on('connection', (ws) => {
     console.log('WebSocket connection established');
 
     async function printHoroscope(firstImpression, previsionDate, firstName, sign, horoscope) {
-        console.log(`Printing horoscope for ${firstName} (${sign})\n\n${horoscope}\nFirst: ${firstImpression}`);
+        console.log(`Printing horoscope for ${firstName} (${sign})\n\n${JSON.stringify(horoscope)}\nPrimeira Impressao: ${firstImpression}`);
         
         return {
             printed: true // call your function here
@@ -52,10 +55,17 @@ wss.on('connection', (ws) => {
     }
 
     async function endCall() {
+
+        ws.send(JSON.stringify({ 
+            type: 'text',
+            token: 'Obrigado por participar da demonstração! Até a próxima e tenha um ótimo Tê Dê Cê!',
+            last: true
+        }));
+
         console.log('Ending call');
         ws.send(JSON.stringify({
             "type": "end",
-            // "handoffData": "{\"reasonCode\":\"live-agent-handoff\", \"reason\": \"The caller wants to talk to a real person\"}"
+            "handoffData": "{\"reasonCode\":\"user-ended\"}"
         }));
 
         return {
@@ -103,6 +113,8 @@ wss.on('connection', (ws) => {
     const endCallDeclaration = {
         name: "endCall",
         parameters: {
+            type: "OBJECT",
+            description: "End the call if the user does not have anything more to ask.",
             required: [],
         },
     };
@@ -118,7 +130,7 @@ wss.on('connection', (ws) => {
     };
 
     
-    const SYSTEM_INSTRUCTION = `Você é ZorAIde, uma cartomante pronta para prever o futuro de pessoas participando do TDC Summit (TDC corresponde a The Developer's Conference).
+    const SYSTEM_INSTRUCTION = `Você é ZorAIde, uma cartomante pronta para prever o futuro de pessoas participando do TDC Floripa (TDC corresponde a The Developer's Conference).
         Somente responda em português, inclusive em todos os parâmetros das funções!
         NUNCA fale o nome completo da pessoa, apenas o primeiro nome. NUNCA repita sobre quem é você e o que faz.
 
@@ -136,10 +148,13 @@ wss.on('connection', (ws) => {
         A pessoa deve dizer o primeiro nome. Se ela não disser, você pode perguntar. Quando ela responder, não fale novamente sobre você e seja direta sobre o horóscopo e algum dado que precise.
         Seja sempre gentil e educada. Quando confirmar a impressão, pergunte se a pessoa deseja mais alguma coisa.
 
-        Ao gerar o horóscopo impresso, liste com mais detalhes as previsões para o dia de hoje.
+        Ao gerar o horóscopo impresso, liste com mais detalhes as previsões para o dia de hoje. Você deve gerar um texto sobre o dia da pessoa considerando o signo informado e que contenha, pelo menos 200 caracteres. Não mencione a quantidade de caracteres. 
 
         A pessoa pode solicitar mais de um horóscopo impresso, então você deve estar pronta para atender a solicitação e fazer a impressão especificamente para cada signo solicitado, neste caso NÃO PERGUNTE o nome da pessoa e faça a impressão direta e não ser que a pessoa peça para falar o horóscopo.
-        Se a pessoa disser o nome no início, se apresente e fale sobre você faz antes de continuar, porém seja breve e pergunte qual signo ou a data de nascimento da pessoa.`
+        Se a pessoa disser o nome no início, se apresente e fale sobre você faz antes de continuar, porém seja breve e pergunte qual signo ou a data de nascimento da pessoa.
+        
+        Caso o usuário não tenha mais nenhum pedido, chame a função endCall
+        `
     
 
 
@@ -149,7 +164,7 @@ wss.on('connection', (ws) => {
         systemInstruction: SYSTEM_INSTRUCTION,
         tools: {
             functionDeclarations: [
-                printHoroscopeFunctionDeclaration
+                printHoroscopeFunctionDeclaration, endCallDeclaration
             ],
         },
     });
@@ -179,7 +194,7 @@ wss.on('connection', (ws) => {
 
                     ws.send(JSON.stringify({ 
                         type: 'text',
-                        token: `Olá, me chamo ZorAIde, a cartomante feita por IA para o TDC Summit São Paulo! Eu ainda não sei o seu nome. Como você se chama?`,
+                        token: `Olá, me chamo ZorAIde, a cartomante feita por IA para o TDC Floripa! Eu ainda não sei o seu nome. Como você se chama?`,
                         last: true
                     }));
 
@@ -189,9 +204,12 @@ wss.on('connection', (ws) => {
 
             case 'interrupt':
                 console.log('Interruption:', message);
-                
-
                 break;
+
+            case 'dtmf':
+                console.log('DTMF:', message);
+                break;
+
 
             case 'prompt':
                 console.log('Prompt:', message.voicePrompt);
@@ -234,9 +252,6 @@ wss.on('connection', (ws) => {
                 }
                 break;
 
-            case 'dtmf':
-                console.log('DTMF:', message);
-                break;
 
             default:
                 console.log('Evento Desconhecido:', message);
@@ -253,43 +268,13 @@ wss.on('connection', (ws) => {
 });
 
 
-/* COMANDOS DISPONÍVEIS
-
-    // ws.send(JSON.stringify({ 
-    //     type: 'text',
-    //     token: 'Isso é um teste',
-    //     last: true
-    // }));
-
-    // ws.send(JSON.stringify({
-    //     "type": "play",
-    //     "source": "https://api.twilio.com/cowbell.mp3",
-    //     "loop": 1,
-    //     "preemptible": true
-    // }));
-
-    // ws.send(JSON.stringify({ 
-    //     type: 'text',
-    //     token: 'Isso é um teste',
-    //     last: true
-    // }));
-
-    // ws.send(JSON.stringify({
-    //     "type": "end",
-    //     // "handoffData": "{\"reasonCode\":\"live-agent-handoff\", \"reason\": \"The caller wants to talk to a real person\"}"
-    // }));
-    // handoffData optional
-
-*/
-
 
 app.post('/connect', (req, res) => {
-    console.log();
-    console.log();
-    console.log('Finalizou a chamada do ConversationRelay'), req.body;
-    console.log();
-    console.log();
-    res.status(200).end();
+    console.log('>>>>>> Finalizou a chamada do ConversationRelay'), req.body;
+    const twiml = new twilio.twiml.VoiceResponse();
+    res.type('text/xml');
+    res.send(twiml.toString());
+    // res.status(200).end();
 });
 
 
@@ -301,16 +286,34 @@ app.post('/', (req, res) => {
     
     const twiml = new twilio.twiml.VoiceResponse();
     const connect = twiml.connect({
-        action: `${SERVER}/connect`,
+        action: `https://${req.headers['x-forwarded-host']}/connect`,
+        // action: `${SERVER}/connect`,
     });
     const conversationrelay = connect.conversationRelay({
-        url: `wss://${SERVER.split('https://')[1]}`,
+        url: `wss://${req.headers['x-forwarded-host']}`,
+        // url: `wss://${SERVER.split('https://')[1]}`,
         welcomeGreeting: WELCOME_GREETING, //.split('{nome}').join('desconhecido'), 
         welcomeGreetingLanguage: WELCOME_GREET_LANGUAGE,
         transcriptionLanguage: TRANSCRIPTION_LANGUAGE,
+        provider: PROVIDER,
         voice: VOICE,
         interruptible: INTERRUPTIBLE,
         dtmfDetection: DTMF_DETECTION,
+
+        // speechModel: 'telephony',
+        // transcriptionProvider: 'Google'
+        // interruptible: 'any',
+        // welcomeGreetingInterruptible: 'any',
+        // dtmfDetection: false,
+        // welcomeGreetingInterruptible: 'none',
+
+        // welcomeGreetingLanguage: 'pt-BR',
+        // transcriptionLanguage: 'pt-BR',
+        // ttsProvider: 'ElevenLabs',
+        // voice: 'm151rjrbWXbBqyq56tly-1.2_0.6_0.8', //eliel - antigo: 'e5WNhrdI30aXpS2RSGm1',
+        // speechModel: 'telephony',
+        // transcriptionProvider: 'Google'
+
 
     });
     // conversationrelay.parameter({
@@ -341,6 +344,15 @@ app.get('/liga', (req, res) => {
 
 server.listen(PORT, async () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+
+    SERVER = `https://demoleao.sa.ngrok.io`;
+    if (NGROK_ACTIVE) {
+        console.log('Starting NGROK...', PORT, NGROK_SUBDOMAIN);
+        SERVER = await ngrok.connect({ authtoken: NGROK_TOKEN, addr: PORT, subdomain: NGROK_SUBDOMAIN ?? null });
+        console.log('URL Webhook:', `${SERVER}/`);
+    }
+
+
 });
 
 
@@ -360,11 +372,63 @@ process.on('SIGTERM', finish);
 
 /*
     // Teste para fazer uma nova chamada
-
     makeCall(
         TWILIO_NUMBER_TO_CALL, 
         userDataJson.memberNome,
         userData,
         SERVER
     );
+*/
+
+
+
+/*
+
+    // Sintetizar Áudio
+    ws.send(JSON.stringify({ 
+        type: 'text',
+        token: 'Isso é um teste',
+        last: true
+    }));
+
+
+    // Trocar Idioma
+    ws.send(JSON.stringify(
+        {
+            "type": "language",
+            "ttsLanguage": "sv-SE",
+            "transcriptionLanguage": "en-US"
+        }
+    ));
+
+
+    // Enviar Arquivo Áudio
+    ws.send(JSON.stringify(
+        {
+            "type": "play",
+            "source": "https://api.twilio.com/cowbell.mp3",
+            "loop": 1,
+            "preemptible": false
+        }
+    ));
+
+    // Enviar Dígitos
+    ws.send(JSON.stringify(
+        {
+            "type": "sendDigits",
+            "digits": "9www4085551212"
+        }
+    ));
+
+
+    // Finalizar chamada
+    ws.send(JSON.stringify(
+        {
+            "type": "end",
+            "handoffData": "{\"reasonCode\":\"live-agent-handoff\", \"reason\": \"The caller wants to talk to a real person\"}"
+        }
+    ));
+    
+
+
 */
